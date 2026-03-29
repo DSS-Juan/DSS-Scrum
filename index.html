@@ -2,603 +2,459 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>DSS Distro — Leveling Up Our Workflow</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  :root{--red:#CC0000;--black:#111;--white:#fff;--gray:#f4f4f4;--darkgray:#222}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#000;color:var(--white);height:100vh;overflow:hidden}
-  .deck{width:100%;height:100vh;position:relative}
-  .slide{position:absolute;inset:0;display:none;flex-direction:column;opacity:0;transition:opacity .4s}
-  .slide.active{display:flex;opacity:1}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#CC0000;--black:#111;--white:#fff;--dark:#1a1a1a;--mid:#242424}
+html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#fff;font-family:'Segoe UI',system-ui,Arial,sans-serif}
 
-  /* Nav */
-  .nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(0,0,0,.6);padding:10px 20px;border-radius:40px;backdrop-filter:blur(8px)}
-  .nav button{background:none;border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:6px 18px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .2s}
-  .nav button:hover{background:var(--red);border-color:var(--red)}
-  .slide-counter{font-size:12px;color:rgba(255,255,255,.5);min-width:48px;text-align:center}
-  .progress{position:fixed;top:0;left:0;height:3px;background:var(--red);transition:width .4s;z-index:200}
+/* DECK */
+.deck{width:100%;height:100dvh;position:relative}
+.slide{position:absolute;inset:0;display:none;opacity:0;transition:opacity .35s;overflow:hidden}
+.slide.active{display:flex;opacity:1}
 
-  /* Section label */
-  .section-tag{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:3px;margin-bottom:14px}
+/* PROGRESS + NAV */
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--red);transition:width .4s;z-index:300}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:12px;z-index:200;padding:10px 16px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.nav button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 20px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.nav button:active,.nav button:hover{background:var(--red);border-color:var(--red)}
+.counter{font-size:12px;color:rgba(255,255,255,.4);min-width:44px;text-align:center}
 
-  /* ── SLIDE TYPES ── */
+/* SECTION TAG */
+.tag{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:3px;margin-bottom:12px}
 
-  /* 1. Cover */
-  .cover{background:var(--black);justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden}
-  .cover-stripe{position:absolute;left:0;top:0;width:14px;height:100%;background:var(--red)}
-  .cover-stripe-r{position:absolute;right:0;top:0;width:14px;height:100%;background:var(--red)}
-  .cover h1{font-size:clamp(28px,4vw,52px);font-weight:800;line-height:1.15;max-width:700px}
-  .cover h1 span{color:var(--red)}
-  .cover p{margin-top:16px;color:rgba(255,255,255,.55);font-size:15px}
-  .logo-wrap{margin-bottom:32px}
-  .logo-wrap img{height:56px}
+/* ── COVER (slides 1 & 17) ── */
+.cover{background:#0a0a0a;justify-content:center;align-items:center;text-align:center;flex-direction:column;padding:40px 24px 80px;gap:0;position:relative}
+.cover::before,.cover::after{content:'';position:absolute;top:0;bottom:0;width:10px;background:var(--red)}
+.cover::before{left:0}.cover::after{right:0}
+.cover .logo{height:clamp(40px,8vw,72px);width:auto;max-width:70%;object-fit:contain;margin-bottom:clamp(20px,4vh,40px)}
+.cover h1{font-size:clamp(26px,5vw,56px);font-weight:900;line-height:1.15;max-width:680px}
+.cover h1 span{color:var(--red)}
+.cover p{margin-top:14px;color:rgba(255,255,255,.5);font-size:clamp(13px,1.8vw,16px);max-width:500px}
+.cover .badge{margin-top:clamp(20px,3vh,32px);background:rgba(204,0,0,.15);border:1px solid rgba(204,0,0,.3);border-radius:24px;padding:8px 20px;font-size:13px;color:rgba(255,255,255,.7)}
 
-  /* 2. Split — left text, right visual */
-  .split{background:var(--black);flex-direction:row}
-  .split-left{flex:1;padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
-  .split-right{width:42%;background:var(--darkgray);display:flex;align-items:center;justify-content:center;padding:32px;position:relative;overflow:hidden}
-  .split h2{font-size:clamp(20px,2.5vw,34px);font-weight:800;line-height:1.2;margin-bottom:20px}
-  .split h2 span{color:var(--red)}
-  .split p{color:rgba(255,255,255,.7);font-size:15px;line-height:1.7;margin-bottom:12px}
+/* ── SECTION BREAK ── */
+.sbreak{background:var(--red);justify-content:center;align-items:center;text-align:center;flex-direction:column;padding:40px 24px 80px;gap:12px}
+.sbreak h2{font-size:clamp(32px,7vw,72px);font-weight:900;line-height:1.1}
+.sbreak p{font-size:clamp(14px,2vw,18px);opacity:.85;max-width:400px}
 
-  /* 3. Section break */
-  .section-break{background:var(--red);justify-content:center;align-items:center;text-align:center}
-  .section-break h2{font-size:clamp(28px,5vw,64px);font-weight:900;letter-spacing:-1px}
-  .section-break p{margin-top:12px;font-size:16px;opacity:.85}
+/* ── SPLIT (text left, visual right) ── */
+.split{flex-direction:row}
+.split .left{flex:1;padding:clamp(20px,4vw,56px) clamp(16px,3vw,48px);padding-bottom:80px;display:flex;flex-direction:column;justify-content:center;overflow-y:auto}
+.split .right{width:38%;background:var(--mid);display:flex;align-items:center;justify-content:center;padding:24px;flex-shrink:0}
+@media(max-width:640px){
+  .split{flex-direction:column}
+  .split .right{width:100%;min-height:160px;flex:none}
+  .split .left{padding-bottom:80px}
+}
+.split h2{font-size:clamp(18px,2.8vw,32px);font-weight:800;line-height:1.25;margin-bottom:14px}
+.split h2 span{color:var(--red)}
+.split p{color:rgba(255,255,255,.65);font-size:clamp(13px,1.5vw,15px);line-height:1.7;margin-bottom:10px}
 
-  /* 4. Cards grid */
-  .cards-slide{background:var(--black);flex-direction:column;padding:48px 56px}
-  .cards-slide h2{font-size:clamp(18px,2.2vw,30px);font-weight:800;margin-bottom:28px}
-  .cards-slide h2 span{color:var(--red)}
-  .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;flex:1}
-  .card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
-  .card-icon{font-size:28px}
-  .card h3{font-size:15px;font-weight:700}
-  .card p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.6}
-  .card.highlight{border-color:var(--red)}
+/* ── CARDS SLIDE ── */
+.cards-slide{flex-direction:column;padding:clamp(16px,3vw,48px) clamp(16px,3vw,56px);padding-bottom:80px;overflow-y:auto}
+.cards-slide h2{font-size:clamp(18px,2.5vw,30px);font-weight:800;margin-bottom:20px;flex-shrink:0}
+.cards-slide h2 span{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px}
+.card{background:var(--dark);border:1px solid #2a2a2a;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.card.hl{border-color:var(--red)}
+.card .ico{font-size:24px}
+.card h3{font-size:14px;font-weight:700}
+.card p{font-size:12px;color:rgba(255,255,255,.55);line-height:1.6}
 
-  /* 5. Problem slide */
-  .problem-slide{background:var(--black);flex-direction:row}
-  .problem-left{flex:1;padding:56px 48px;display:flex;flex-direction:column;justify-content:center}
-  .problem-left h2{font-size:clamp(20px,2.5vw,34px);font-weight:800;margin-bottom:8px}
-  .problem-left h2 span{color:var(--red)}
-  .problem-left .impact{margin-top:20px;background:#1a1a1a;border-left:4px solid var(--red);padding:16px 20px;border-radius:0 8px 8px 0}
-  .problem-left .impact p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7}
-  .problem-right{width:40%;background:#1a0000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:32px}
-  .big-stat{font-size:clamp(48px,7vw,90px);font-weight:900;color:var(--red);line-height:1}
-  .stat-label{font-size:14px;color:rgba(255,255,255,.6);text-align:center}
+/* ── PROBLEM SLIDE ── */
+.prob{flex-direction:row}
+.prob .pl{flex:1;padding:clamp(16px,3vw,56px) clamp(16px,3vw,48px);padding-bottom:80px;display:flex;flex-direction:column;justify-content:center;overflow-y:auto}
+.prob .pr{width:36%;background:#140000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:24px;flex-shrink:0}
+@media(max-width:640px){
+  .prob{flex-direction:column}
+  .prob .pr{width:100%;min-height:140px;flex:none;flex-direction:row;gap:16px}
+}
+.prob h2{font-size:clamp(16px,2.5vw,28px);font-weight:800;line-height:1.25;margin-bottom:8px}
+.prob h2 span{color:var(--red)}
+.prob p{color:rgba(255,255,255,.65);font-size:clamp(12px,1.4vw,14px);line-height:1.7;margin-bottom:10px}
+.impact{background:var(--dark);border-left:4px solid var(--red);padding:12px 16px;border-radius:0 8px 8px 0;margin-top:12px}
+.impact p{font-size:clamp(12px,1.3vw,13px);color:rgba(255,255,255,.65);margin:0}
+.bigstat{font-size:clamp(52px,9vw,90px);font-weight:900;color:var(--red);line-height:1}
+.statlabel{font-size:13px;color:rgba(255,255,255,.5);text-align:center;line-height:1.5}
 
-  /* 6. Timeline / cycle visual */
-  .cycle-slide{background:var(--black);flex-direction:column;align-items:center;justify-content:center;padding:40px 48px;text-align:center}
-  .cycle-slide h2{font-size:clamp(18px,2.2vw,28px);font-weight:800;margin-bottom:32px}
-  .cycle-slide h2 span{color:var(--red)}
-  .cycle{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;max-width:860px}
-  .cycle-item{display:flex;flex-direction:column;align-items:center;gap:8px;width:120px}
-  .cycle-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;border:2px solid}
-  .cycle-circle.red{background:var(--red);border-color:var(--red)}
-  .cycle-circle.dark{background:#1a1a1a;border-color:#333}
-  .cycle-label{font-size:12px;color:rgba(255,255,255,.7);text-align:center;line-height:1.4}
-  .cycle-time{font-size:11px;color:var(--red);font-weight:700}
-  .cycle-arrow{font-size:22px;color:#444;margin:0 -4px;padding-bottom:30px}
+/* ── CYCLE SLIDE ── */
+.cycle-slide{flex-direction:column;align-items:center;justify-content:center;padding:clamp(16px,3vw,40px) clamp(16px,3vw,48px);padding-bottom:80px;text-align:center;overflow-y:auto}
+.cycle-slide h2{font-size:clamp(16px,2.2vw,26px);font-weight:800;margin-bottom:20px;flex-shrink:0}
+.cycle-slide h2 span{color:var(--red)}
+.cycle{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;max-width:860px}
+.ci{display:flex;flex-direction:column;align-items:center;gap:6px;width:clamp(80px,12vw,110px)}
+.cc{width:clamp(52px,8vw,68px);height:clamp(52px,8vw,68px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.5vw,22px);border:2px solid}
+.cc.r{background:var(--red);border-color:var(--red)}
+.cc.d{background:var(--dark);border-color:#333}
+.clabel{font-size:clamp(10px,1.2vw,12px);color:rgba(255,255,255,.7);line-height:1.4}
+.ctime{font-size:clamp(9px,1.1vw,11px);color:var(--red);font-weight:700}
+.carr{font-size:18px;color:#333;padding-bottom:28px}
+.cycle-footer{margin-top:16px;display:flex;gap:clamp(12px,3vw,32px);flex-wrap:wrap;justify-content:center}
+.cycle-footer span{font-size:clamp(11px,1.3vw,13px);color:rgba(255,255,255,.5)}
+.cycle-footer b{color:var(--red)}
 
-  /* 7. Before/After */
-  .ba-slide{background:var(--black);flex-direction:column;padding:48px 56px}
-  .ba-slide h2{font-size:clamp(18px,2.2vw,28px);font-weight:800;margin-bottom:28px}
-  .ba-slide h2 span{color:var(--red)}
-  .ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1}
-  .ba-col{background:#1a1a1a;border-radius:12px;padding:24px}
-  .ba-col h3{font-size:14px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid}
-  .ba-col.before h3{border-color:#555;color:#888}
-  .ba-col.after h3{border-color:var(--red);color:var(--red)}
-  .ba-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5}
-  .ba-row .icon{flex-shrink:0;margin-top:1px}
+/* ── CEREMONIES ── */
+.cer-slide{flex-direction:column;padding:clamp(16px,3vw,48px) clamp(16px,3vw,56px);padding-bottom:80px;overflow-y:auto}
+.cer-slide h2{font-size:clamp(18px,2.5vw,28px);font-weight:800;margin-bottom:20px;flex-shrink:0}
+.cer-slide h2 span{color:var(--red)}
+.cer-list{display:flex;flex-direction:column;gap:12px}
+.cer{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:16px;background:var(--dark);border-radius:12px;padding:16px 18px;border-left:4px solid var(--red)}
+.cnum{font-size:clamp(20px,3vw,28px);font-weight:900;color:var(--red)}
+.cer h3{font-size:clamp(13px,1.5vw,15px);font-weight:700;margin-bottom:3px}
+.cer p{font-size:clamp(11px,1.3vw,12px);color:rgba(255,255,255,.55);line-height:1.5}
+.ctime-badge{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:16px;white-space:nowrap;align-self:flex-start}
+@media(max-width:500px){.cer{grid-template-columns:36px 1fr}.ctime-badge{display:none}}
 
-  /* 8. Ceremonies */
-  .ceremonies-slide{background:var(--black);flex-direction:column;padding:48px 56px}
-  .ceremonies-slide h2{font-size:clamp(18px,2.2vw,28px);font-weight:800;margin-bottom:28px}
-  .ceremonies-slide h2 span{color:var(--red)}
-  .ceremony-list{display:flex;flex-direction:column;gap:16px;flex:1;justify-content:center}
-  .ceremony{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:20px;background:#1a1a1a;border-radius:12px;padding:20px 24px;border-left:4px solid var(--red)}
-  .ceremony-num{font-size:28px;font-weight:900;color:var(--red)}
-  .ceremony h3{font-size:15px;font-weight:700;margin-bottom:4px}
-  .ceremony p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5}
-  .ceremony-time{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}
+/* ── BEFORE/AFTER ── */
+.ba-slide{flex-direction:column;padding:clamp(16px,3vw,48px) clamp(16px,3vw,56px);padding-bottom:80px;overflow-y:auto}
+.ba-slide h2{font-size:clamp(18px,2.5vw,28px);font-weight:800;margin-bottom:20px;flex-shrink:0}
+.ba-slide h2 span{color:var(--red)}
+.ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:560px){.ba-grid{grid-template-columns:1fr}}
+.ba-col{background:var(--dark);border-radius:12px;padding:18px}
+.ba-col h3{font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid}
+.ba-col.bef h3{border-color:#444;color:#777}
+.ba-col.aft h3{border-color:var(--red);color:var(--red)}
+.ba-row{display:flex;gap:8px;margin-bottom:10px;font-size:clamp(11px,1.3vw,13px);color:rgba(255,255,255,.7);line-height:1.5}
 
-  /* 9. Scrum image slide */
-  .img-slide{background:var(--darkgray);flex-direction:column;align-items:center;justify-content:center;padding:32px 48px;text-align:center}
-  .img-slide h2{font-size:clamp(18px,2.2vw,26px);font-weight:800;margin-bottom:24px}
-  .img-slide h2 span{color:var(--red)}
-  .scrum-img-wrap{background:#1a1a1a;border-radius:16px;overflow:hidden;max-width:680px;width:100%}
-  .scrum-img-wrap img{width:100%;display:block}
-  .img-slide .caption{margin-top:14px;font-size:13px;color:rgba(255,255,255,.45)}
+/* ── PROPOSAL ── */
+.prop-slide{flex-direction:row}
+.prop-slide .pl{flex:1;padding:clamp(16px,3vw,56px) clamp(16px,3vw,48px);padding-bottom:80px;display:flex;flex-direction:column;justify-content:center;overflow-y:auto}
+.prop-slide .pr{width:34%;background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:10px;flex-shrink:0}
+@media(max-width:640px){
+  .prop-slide{flex-direction:column}
+  .prop-slide .pr{width:100%;flex:none;padding:16px}
+}
+.prop-slide h2{font-size:clamp(18px,2.5vw,30px);font-weight:800;margin-bottom:18px}
+.prop-slide h2 span{color:var(--red)}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.snum{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;margin-top:1px}
+.sbody h4{font-size:clamp(12px,1.4vw,14px);font-weight:700;margin-bottom:3px}
+.sbody p{font-size:clamp(11px,1.2vw,12px);color:rgba(255,255,255,.55);line-height:1.5}
+.tool-pill{background:var(--dark);border:1px solid #2a2a2a;border-radius:8px;padding:10px 14px;width:100%;text-align:center}
+.tool-pill .tn{font-size:13px;font-weight:700}
+.tool-pill .tr{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
 
-  /* 10. Proposal */
-  .proposal-slide{background:var(--black);flex-direction:row}
-  .proposal-left{flex:1;padding:56px 48px;display:flex;flex-direction:column;justify-content:center}
-  .proposal-left h2{font-size:clamp(20px,2.5vw,32px);font-weight:800;margin-bottom:24px}
-  .proposal-left h2 span{color:var(--red)}
-  .step{display:flex;gap:16px;margin-bottom:18px;align-items:flex-start}
-  .step-num{width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
-  .step-body h4{font-size:14px;font-weight:700;margin-bottom:4px}
-  .step-body p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5}
-  .proposal-right{width:38%;background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:16px}
-  .tool-pill{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:12px 20px;width:100%;text-align:center}
-  .tool-pill .tname{font-size:14px;font-weight:700}
-  .tool-pill .trole{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px}
+/* mapping table */
+.map-table{width:100%;border-collapse:collapse;margin-top:14px}
+.map-table td{padding:8px 6px;font-size:clamp(11px,1.3vw,13px);border-bottom:1px solid #222}
+.map-table td:first-child{color:rgba(255,255,255,.5)}
+.map-table td:nth-child(2){color:var(--red);font-weight:700;padding:0 6px}
+.map-table td:last-child{font-weight:600}
 
-  /* 11. Closing */
-  .closing{background:var(--black);justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden}
-  .closing h1{font-size:clamp(24px,4vw,48px);font-weight:900;max-width:600px;line-height:1.2}
-  .closing h1 span{color:var(--red)}
-  .closing p{margin-top:16px;color:rgba(255,255,255,.5);font-size:15px}
-  .closing .logo-wrap{margin-top:32px}
-
-  /* SVG Scrum Sprint Diagram */
-  .sprint-svg{width:100%;max-width:640px}
-
-  /* keyboard hint */
-  .kbd-hint{position:fixed;top:16px;right:20px;font-size:11px;color:rgba(255,255,255,.25);z-index:100}
+/* tag pill row */
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill{background:var(--dark);border:1px solid #333;border-radius:20px;padding:5px 12px;font-size:11px}
 </style>
 </head>
 <body>
+<div class="progress" id="prog"></div>
+<div class="deck">
 
-<div class="progress" id="progress"></div>
-<div class="kbd-hint">← → to navigate</div>
-
-<div class="deck" id="deck">
-
-  <!-- SLIDE 1: Cover -->
-  <div class="slide cover active" id="s1">
-    <div class="cover-stripe"></div>
-    <div class="cover-stripe-r"></div>
-    <div class="logo-wrap">
-      <img src="https://i.imgur.com/placeholder.png" alt="DSS Distro"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-        style="height:56px">
-      <div style="display:none;align-items:center;gap:0">
-        <div style="background:#CC0000;padding:10px 14px;border-radius:4px 0 0 4px">
-          <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">DSS</span>
-        </div>
-        <div style="background:#111;border:1px solid #333;padding:10px 14px;border-radius:0 4px 4px 0">
-          <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">DISTRO</span>
-        </div>
-      </div>
-    </div>
+  <!-- S1: COVER -->
+  <div class="slide cover active">
+    <img class="logo" src="LOGO FOR SITE white.png" alt="DSS Distro">
     <h1>Leveling up<br><span>our workflow</span></h1>
     <p>From weekly meetings to a real agile rhythm — a proposal for the team</p>
+    <div class="badge">🚀 DSS × Scrum Framework</div>
   </div>
 
-  <!-- SLIDE 2: What we built -->
-  <div class="slide cards-slide" id="s2">
-    <div class="section-tag">Section 1 — What we built</div>
+  <!-- S2: WHAT WE BUILT -->
+  <div class="slide cards-slide">
+    <div class="tag">Section 1 — What we built</div>
     <h2>We've come a long way <span>this year</span></h2>
-    <div class="cards-grid">
-      <div class="card highlight">
-        <div class="card-icon">📝</div>
-        <h3>AI-powered meeting notes</h3>
-        <p>Every Wednesday meeting gets transcribed and analysed. No more "what were we supposed to do?" moments.</p>
-      </div>
-      <div class="card highlight">
-        <div class="card-icon">🗂️</div>
-        <h3>Trello boards in order</h3>
-        <p>Tasks are tracked, visible and assigned. Cards are generated directly from meeting notes via API.</p>
-      </div>
-      <div class="card highlight">
-        <div class="card-icon">🤖</div>
-        <h3>Automation pipeline</h3>
-        <p>Trello API imports cards automatically. Less manual work, faster setup after each meeting.</p>
-      </div>
-      <div class="card highlight">
-        <div class="card-icon">📅</div>
-        <h3>Weekly rhythm established</h3>
-        <p>Wednesday meetings give the team a consistent heartbeat. Everyone knows when to sync up.</p>
-      </div>
+    <div class="grid">
+      <div class="card hl"><div class="ico">📝</div><h3>AI-powered meeting notes</h3><p>Every Wednesday meeting gets transcribed and analysed. No more "what were we supposed to do?" moments.</p></div>
+      <div class="card hl"><div class="ico">🗂️</div><h3>Trello boards in order</h3><p>Tasks are tracked, visible and assigned. Cards generated directly from meeting notes via API.</p></div>
+      <div class="card hl"><div class="ico">🤖</div><h3>Automation pipeline</h3><p>Trello API imports cards automatically. Less manual work, faster setup after each meeting.</p></div>
+      <div class="card hl"><div class="ico">📅</div><h3>Weekly rhythm established</h3><p>Wednesday meetings give the team a consistent heartbeat. Everyone knows when to sync up.</p></div>
     </div>
   </div>
 
-  <!-- SLIDE 3: Already close to Scrum -->
-  <div class="slide split" id="s3">
-    <div class="split-left">
-      <div class="section-tag">Section 1 — What we built</div>
+  <!-- S3: ALREADY CLOSE -->
+  <div class="slide split">
+    <div class="left">
+      <div class="tag">Section 1 — What we built</div>
       <h2>We're already doing <span>Scrum</span> — just not calling it that</h2>
       <p>Look at what we have and map it to the framework:</p>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;font-size:13px">
-          <span style="color:rgba(255,255,255,.6)">Wednesday meeting</span>
-          <span style="color:var(--red);font-weight:700">→</span>
-          <span style="font-weight:600">Sprint planning</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;font-size:13px">
-          <span style="color:rgba(255,255,255,.6)">AI transcript + notes</span>
-          <span style="color:var(--red);font-weight:700">→</span>
-          <span style="font-weight:600">Backlog grooming</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;font-size:13px">
-          <span style="color:rgba(255,255,255,.6)">Trello cards</span>
-          <span style="color:var(--red);font-weight:700">→</span>
-          <span style="font-weight:600">Sprint backlog</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;font-size:13px">
-          <span style="color:rgba(255,255,255,.6)">Trello board status</span>
-          <span style="color:var(--red);font-weight:700">→</span>
-          <span style="font-weight:600">Sprint progress view</span>
-        </div>
-      </div>
-      <p style="margin-top:20px;font-size:14px;color:rgba(255,255,255,.5)">The foundation is solid. We just need to formalise the rhythm.</p>
+      <table class="map-table">
+        <tr><td>Wednesday meeting</td><td>→</td><td>Sprint planning</td></tr>
+        <tr><td>AI transcript + notes</td><td>→</td><td>Backlog grooming</td></tr>
+        <tr><td>Trello cards</td><td>→</td><td>Sprint backlog</td></tr>
+        <tr><td>Trello board status</td><td>→</td><td>Sprint progress view</td></tr>
+      </table>
+      <p style="margin-top:16px;font-size:13px;color:rgba(255,255,255,.4)">The foundation is solid. We just need to formalise the rhythm.</p>
     </div>
-    <div class="split-right">
-      <div style="text-align:center">
-        <div style="font-size:72px;font-weight:900;color:var(--red);line-height:1">~80%</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:8px;max-width:180px">of Scrum is already<br>in place at DSS</div>
-      </div>
+    <div class="right" style="flex-direction:column;gap:6px;text-align:center">
+      <div style="font-size:clamp(52px,10vw,88px);font-weight:900;color:var(--red);line-height:1">~80%</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);max-width:160px">of Scrum is already<br>in place at DSS</div>
     </div>
   </div>
 
-  <!-- SLIDE 4: Section break — Problems -->
-  <div class="slide section-break" id="s4">
+  <!-- S4: SECTION BREAK — PROBLEMS -->
+  <div class="slide sbreak">
     <h2>But we hit<br>some walls 🧱</h2>
-    <p>Four friction points holding us back</p>
+    <p>Four friction points holding us back from our full potential</p>
   </div>
 
-  <!-- SLIDE 5: Problem 1 — Sprint too short -->
-  <div class="slide problem-slide" id="s5">
-    <div class="problem-left">
-      <div class="section-tag">Section 2 — Friction points</div>
+  <!-- S5: PROBLEM 1 -->
+  <div class="slide prob">
+    <div class="pl">
+      <div class="tag">Section 2 — Friction points</div>
       <h2>Problem 1 — <span>One week is not enough</span></h2>
-      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:1.7;margin-top:8px">Tasks get created on Wednesday and reviewed the following Wednesday. That leaves barely 4–5 working days to pick up a task, deal with blockers, iterate, and deliver something meaningful.</p>
-      <div class="impact">
-        <p>Everything feels urgent because nothing has room to breathe. The team is always playing catch-up instead of working ahead.</p>
-      </div>
+      <p>Tasks get created on Wednesday and reviewed the following Wednesday. That leaves barely 4–5 working days to pick up a task, deal with blockers, iterate, and deliver something meaningful.</p>
+      <div class="impact"><p>Everything feels urgent because nothing has room to breathe. The team is always playing catch-up instead of working ahead.</p></div>
     </div>
-    <div class="problem-right">
-      <div class="big-stat">5</div>
-      <div class="stat-label">working days<br>to do everything</div>
-      <div style="margin-top:20px;font-size:13px;color:rgba(255,255,255,.4);text-align:center">Plan · Execute · Deliver<br>all in one week</div>
+    <div class="pr">
+      <div class="bigstat">5</div>
+      <div class="statlabel">working days<br>to plan, execute<br>& deliver</div>
     </div>
   </div>
 
-  <!-- SLIDE 6: Problem 2 — One meeting too many jobs -->
-  <div class="slide problem-slide" id="s6">
-    <div class="problem-left">
-      <div class="section-tag">Section 2 — Friction points</div>
+  <!-- S6: PROBLEM 2 -->
+  <div class="slide prob">
+    <div class="pl">
+      <div class="tag">Section 2 — Friction points</div>
       <h2>Problem 2 — <span>One meeting doing too many jobs</span></h2>
-      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:1.7;margin-top:8px">Wednesday meetings are currently handling planning, reviewing last week, troubleshooting blockers, making decisions and aligning on priorities — all at once.</p>
-      <div class="impact">
-        <p>Important items get rushed or skipped. The meeting collapses under its own weight and the team leaves without clear direction.</p>
-      </div>
+      <p>Wednesday meetings are currently handling planning, reviewing last week, troubleshooting blockers, making decisions and aligning priorities — all at once.</p>
+      <div class="impact"><p>Important items get rushed or skipped. The meeting collapses under its own weight and the team leaves without clear direction.</p></div>
     </div>
-    <div class="problem-right">
-      <div style="display:flex;flex-direction:column;gap:10px;width:100%">
-        <div style="background:#2a0000;border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--red)">📋 Planning next week</div>
-        <div style="background:#2a0000;border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--red)">🔍 Reviewing last week</div>
-        <div style="background:#2a0000;border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--red)">🚧 Troubleshooting blockers</div>
-        <div style="background:#2a0000;border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--red)">⚡ Making decisions</div>
-        <div style="background:#2a0000;border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--red)">🎯 Aligning priorities</div>
-      </div>
+    <div class="pr" style="gap:8px;width:38%">
+      <div style="background:#2a0000;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid var(--red);width:100%">📋 Planning next sprint</div>
+      <div style="background:#2a0000;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid var(--red);width:100%">🔍 Reviewing last week</div>
+      <div style="background:#2a0000;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid var(--red);width:100%">🚧 Troubleshooting blockers</div>
+      <div style="background:#2a0000;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid var(--red);width:100%">⚡ Making decisions</div>
+      <div style="background:#2a0000;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid var(--red);width:100%">🎯 Aligning priorities</div>
     </div>
   </div>
 
-  <!-- SLIDE 7: Problem 3 — No pulse -->
-  <div class="slide problem-slide" id="s7">
-    <div class="problem-left">
-      <div class="section-tag">Section 2 — Friction points</div>
+  <!-- S7: PROBLEM 3 -->
+  <div class="slide prob">
+    <div class="pl">
+      <div class="tag">Section 2 — Friction points</div>
       <h2>Problem 3 — <span>No pulse between meetings</span></h2>
-      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:1.7;margin-top:8px">Between Wednesdays, the team works in silence. If something gets stuck on Thursday, nobody finds out until the following Wednesday — 6 days later.</p>
-      <div class="impact">
-        <p>Blockers sit hidden. Tasks pile up. By the time we surface the problem it's already too late to recover within the week.</p>
-      </div>
+      <p>Between Wednesdays, the team works in silence. If something gets stuck on Thursday, nobody finds out until the following Wednesday — 6 days later.</p>
+      <div class="impact"><p>Blockers sit hidden. Tasks pile up. By the time we surface the problem it's already too late to recover within the week.</p></div>
     </div>
-    <div class="problem-right">
-      <div class="big-stat">6</div>
-      <div class="stat-label">days a blocker<br>can sit hidden</div>
-      <div style="margin-top:20px;font-size:13px;color:rgba(255,255,255,.4);text-align:center">Wed → Wed<br>no check-in in between</div>
+    <div class="pr">
+      <div class="bigstat">6</div>
+      <div class="statlabel">days a blocker<br>can sit hidden<br>Wed → Wed</div>
     </div>
   </div>
 
-  <!-- SLIDE 8: Problem 4 — No retro -->
-  <div class="slide problem-slide" id="s8">
-    <div class="problem-left">
-      <div class="section-tag">Section 2 — Friction points</div>
+  <!-- S8: PROBLEM 4 -->
+  <div class="slide prob">
+    <div class="pl">
+      <div class="tag">Section 2 — Friction points</div>
       <h2>Problem 4 — <span>We never close the loop</span></h2>
-      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:1.7;margin-top:8px">We jump from sprint to sprint without pausing to ask: did that work? What slowed us down? What should we try differently?</p>
-      <div class="impact">
-        <p>Without a retrospective, we repeat the same friction patterns every cycle. The process never improves itself.</p>
-      </div>
+      <p>We jump from sprint to sprint without pausing to ask: did that work? What slowed us down? What should we try differently next time?</p>
+      <div class="impact"><p>Without a retrospective, we repeat the same friction patterns every cycle. The process never improves itself.</p></div>
     </div>
-    <div class="problem-right">
-      <div style="text-align:center">
-        <div style="font-size:52px;margin-bottom:12px">🔁</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6">Same issues<br>cycle after cycle<br><br>No mechanism<br>to improve the<br>process itself</div>
-      </div>
+    <div class="pr" style="text-align:center">
+      <div style="font-size:48px">🔁</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;margin-top:8px">Same issues<br>cycle after cycle.<br><br>No mechanism<br>to improve<br>the process itself.</div>
     </div>
   </div>
 
-  <!-- SLIDE 9: Section break — Scrum -->
-  <div class="slide section-break" id="s9">
-    <h2>Enter<br><span style="font-style:italic">Scrum</span> ⚡</h2>
+  <!-- S9: SECTION BREAK — SCRUM -->
+  <div class="slide sbreak">
+    <h2>Enter<br><em>Scrum</em> ⚡</h2>
     <p>A lightweight framework built exactly for this</p>
   </div>
 
-  <!-- SLIDE 10: What is Scrum -->
-  <div class="slide split" id="s10">
-    <div class="split-left">
-      <div class="section-tag">Section 3 — Scrum</div>
+  <!-- S10: WHAT IS SCRUM -->
+  <div class="slide split">
+    <div class="left">
+      <div class="tag">Section 3 — Scrum</div>
       <h2>What is <span>Scrum?</span></h2>
       <p>Scrum is a simple framework that helps small teams move fast, stay aligned and continuously improve — without drowning in process.</p>
       <p>It's built around <strong style="color:#fff">short focused bursts of work</strong> called sprints, with built-in checkpoints so the team always knows what's happening and can course-correct quickly.</p>
-      <p>It doesn't replace the tools you use — it gives those tools a <strong style="color:#fff">rhythm and structure</strong> that makes them actually work together.</p>
-      <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
-        <span style="background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:6px 14px;font-size:12px">🏃 Fast iterations</span>
-        <span style="background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:6px 14px;font-size:12px">👀 Full visibility</span>
-        <span style="background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:6px 14px;font-size:12px">🔧 Self-improving</span>
+      <p>It doesn't replace the tools you use — it gives them a <strong style="color:#fff">rhythm and structure</strong> that makes them work together.</p>
+      <div class="pills">
+        <span class="pill">🏃 Fast iterations</span>
+        <span class="pill">👀 Full visibility</span>
+        <span class="pill">🔧 Self-improving</span>
+        <span class="pill">🎯 Clear focus</span>
       </div>
     </div>
-    <div class="split-right" style="background:#0a0a0a;flex-direction:column;gap:16px;padding:40px">
-      <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:4px">Used by teams at</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%">
-        <div style="background:#1a1a1a;border-radius:8px;padding:12px;text-align:center;font-size:13px;font-weight:600">Spotify</div>
-        <div style="background:#1a1a1a;border-radius:8px;padding:12px;text-align:center;font-size:13px;font-weight:600">Amazon</div>
-        <div style="background:#1a1a1a;border-radius:8px;padding:12px;text-align:center;font-size:13px;font-weight:600">Google</div>
-        <div style="background:#1a1a1a;border-radius:8px;padding:12px;text-align:center;font-size:13px;font-weight:600">Netflix</div>
+    <div class="right" style="flex-direction:column;gap:10px;text-align:center">
+      <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:4px">Used by teams at</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:200px">
+        <div style="background:var(--dark);border-radius:8px;padding:10px;font-size:12px;font-weight:600">Spotify</div>
+        <div style="background:var(--dark);border-radius:8px;padding:10px;font-size:12px;font-weight:600">Amazon</div>
+        <div style="background:var(--dark);border-radius:8px;padding:10px;font-size:12px;font-weight:600">Google</div>
+        <div style="background:var(--dark);border-radius:8px;padding:10px;font-size:12px;font-weight:600">Netflix</div>
       </div>
-      <div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.35);text-align:center">...and thousands of small teams worldwide</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:4px">...and thousands of small teams</div>
     </div>
   </div>
 
-  <!-- SLIDE 11: How a sprint works — cycle visual -->
-  <div class="slide cycle-slide" id="s11">
-    <div class="section-tag">Section 3 — Scrum</div>
+  <!-- S11: SPRINT CYCLE -->
+  <div class="slide cycle-slide">
+    <div class="tag">Section 3 — Scrum</div>
     <h2>How a <span>2-week sprint</span> works</h2>
     <div class="cycle">
-      <div class="cycle-item">
-        <div class="cycle-circle red">📋</div>
-        <div class="cycle-label">Sprint<br>Planning</div>
-        <div class="cycle-time">~60 min</div>
-      </div>
-      <div class="cycle-arrow">→</div>
-      <div class="cycle-item">
-        <div class="cycle-circle dark">☀️</div>
-        <div class="cycle-label">Daily<br>Standup</div>
-        <div class="cycle-time">15 min/day</div>
-      </div>
-      <div class="cycle-arrow">→</div>
-      <div class="cycle-item">
-        <div class="cycle-circle dark">💪</div>
-        <div class="cycle-label">Work in<br>progress</div>
-        <div class="cycle-time">2 weeks</div>
-      </div>
-      <div class="cycle-arrow">→</div>
-      <div class="cycle-item">
-        <div class="cycle-circle dark">✅</div>
-        <div class="cycle-label">Sprint<br>Review</div>
-        <div class="cycle-time">~30 min</div>
-      </div>
-      <div class="cycle-arrow">→</div>
-      <div class="cycle-item">
-        <div class="cycle-circle red">🔄</div>
-        <div class="cycle-label">Retro-<br>spective</div>
-        <div class="cycle-time">~30 min</div>
-      </div>
-      <div class="cycle-arrow">→</div>
-      <div class="cycle-item">
-        <div class="cycle-circle dark">🔁</div>
-        <div class="cycle-label">Next<br>Sprint</div>
-        <div class="cycle-time">repeat</div>
-      </div>
+      <div class="ci"><div class="cc r">📋</div><div class="clabel">Sprint<br>Planning</div><div class="ctime">~60 min</div></div>
+      <div class="carr">→</div>
+      <div class="ci"><div class="cc d">☀️</div><div class="clabel">Daily<br>Standup</div><div class="ctime">15 min</div></div>
+      <div class="carr">→</div>
+      <div class="ci"><div class="cc d">💪</div><div class="clabel">Work in<br>progress</div><div class="ctime">2 weeks</div></div>
+      <div class="carr">→</div>
+      <div class="ci"><div class="cc d">✅</div><div class="clabel">Sprint<br>Review</div><div class="ctime">~30 min</div></div>
+      <div class="carr">→</div>
+      <div class="ci"><div class="cc r">🔄</div><div class="clabel">Retro-<br>spective</div><div class="ctime">~30 min</div></div>
+      <div class="carr">→</div>
+      <div class="ci"><div class="cc d">🔁</div><div class="clabel">Next<br>Sprint</div><div class="ctime">repeat</div></div>
     </div>
-    <div style="margin-top:28px;display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
-      <div style="font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--red);font-weight:700">Wed wk 1</span> — Planning session</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--red);font-weight:700">Daily</span> — Quick async check-in</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--red);font-weight:700">Wed wk 2</span> — Review + Retro</div>
+    <div class="cycle-footer">
+      <span><b>Wed wk 1</b> — Planning session</span>
+      <span><b>Daily</b> — Quick async check-in</span>
+      <span><b>Wed wk 2</b> — Review + Retro</span>
     </div>
-    <div style="margin-top:16px;background:#1a0000;border-radius:10px;padding:14px 24px;max-width:520px">
-      <p style="font-size:13px;color:rgba(255,255,255,.6);text-align:center">🖼️ <em>The sprint is a closed loop — every cycle ends with a built-in moment to improve the next one</em></p>
+    <div style="margin-top:14px;background:#1a0000;border-radius:10px;padding:12px 20px;max-width:500px;width:100%">
+      <p style="font-size:12px;color:rgba(255,255,255,.55);text-align:center">Every cycle ends with a built-in moment to improve the next one 🔁</p>
     </div>
   </div>
 
-  <!-- SLIDE 12: Ceremonies detail -->
-  <div class="slide ceremonies-slide" id="s12">
-    <div class="section-tag">Section 3 — Scrum</div>
+  <!-- S12: CEREMONIES -->
+  <div class="slide cer-slide">
+    <div class="tag">Section 3 — Scrum</div>
     <h2>The three <span>key ceremonies</span></h2>
-    <div class="ceremony-list">
-      <div class="ceremony">
-        <div class="ceremony-num">1</div>
-        <div>
-          <h3>Sprint planning — every other Wednesday</h3>
-          <p>Decide as a team what we're committing to for the next 2 weeks. Pull from the backlog, assign tasks, set clear goals. AI notes → Trello cards ready to go.</p>
-        </div>
-        <div class="ceremony-time">~60 min</div>
+    <div class="cer-list">
+      <div class="cer">
+        <div class="cnum">1</div>
+        <div><h3>Sprint planning — every other Wednesday</h3><p>Decide what the team is committing to for the next 2 weeks. Pull from the backlog, assign tasks, set clear goals. AI notes → Trello cards ready to go.</p></div>
+        <div class="ctime-badge">~60 min</div>
       </div>
-      <div class="ceremony">
-        <div class="ceremony-num">2</div>
-        <div>
-          <h3>Daily standup — async or live</h3>
-          <p>3 questions each day: What did I do yesterday? What am I doing today? Any blockers? Surfaces problems in hours, not days. Can be a quick Slack thread.</p>
-        </div>
-        <div class="ceremony-time">15 min/day</div>
+      <div class="cer">
+        <div class="cnum">2</div>
+        <div><h3>Daily standup — async or live</h3><p>3 questions each day: What did I do yesterday? What am I doing today? Any blockers? Surfaces problems in hours, not days. Can be a quick Slack thread.</p></div>
+        <div class="ctime-badge">15 min/day</div>
       </div>
-      <div class="ceremony">
-        <div class="ceremony-num">3</div>
-        <div>
-          <h3>Sprint review + retrospective — Wednesday wk 2</h3>
-          <p>What did we ship? (review, 30 min) — then — What went well, what didn't, what do we try next sprint? (retro, 30 min). The loop that makes the process smarter over time.</p>
-        </div>
-        <div class="ceremony-time">~60 min total</div>
+      <div class="cer">
+        <div class="cnum">3</div>
+        <div><h3>Sprint review + retrospective — Wednesday wk 2</h3><p>What did we ship? (30 min review) — then — What went well, what didn't, what do we change? (30 min retro). The loop that makes the process smarter over time.</p></div>
+        <div class="ctime-badge">~60 min total</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 13: Benefits of Scrum -->
-  <div class="slide cards-slide" id="s13">
-    <div class="section-tag">Section 3 — Scrum</div>
-    <h2>Why Scrum <span>actually helps</span></h2>
-    <div class="cards-grid">
-      <div class="card">
-        <div class="card-icon">🎯</div>
-        <h3>Clarity on what matters</h3>
-        <p>Each sprint has a defined goal. No ambiguity about what the team is working on or why.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🚨</div>
-        <h3>Blockers surface fast</h3>
-        <p>Daily standups catch problems in 24 hours instead of letting them sit for 6 days unnoticed.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📈</div>
-        <h3>The process improves itself</h3>
-        <p>Retrospectives mean every sprint is slightly better than the last. Compounding gains over time.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🧘</div>
-        <h3>Less meeting fatigue</h3>
-        <p>Each meeting has a single purpose. Planning stays separate from review. No more one session doing five jobs.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">💪</div>
-        <h3>Team owns the work</h3>
-        <p>The team commits to what they can actually deliver. Realistic sprints = realistic expectations.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">⚡</div>
-        <h3>More breathing room</h3>
-        <p>2-week sprints mean time to actually finish things — not just start them and rush to the next meeting.</p>
-      </div>
+  <!-- S13: BENEFITS -->
+  <div class="slide cards-slide">
+    <div class="tag">Section 3 — Scrum</div>
+    <h2>Why Scrum <span>actually helps us</span></h2>
+    <div class="grid">
+      <div class="card"><div class="ico">🎯</div><h3>Clarity on what matters</h3><p>Each sprint has a defined goal. No ambiguity about what the team is working on or why.</p></div>
+      <div class="card"><div class="ico">🚨</div><h3>Blockers surface fast</h3><p>Daily standups catch problems in 24 hours instead of letting them sit 6 days unnoticed.</p></div>
+      <div class="card"><div class="ico">📈</div><h3>Process improves itself</h3><p>Retrospectives mean every sprint is slightly better than the last. Compounding gains over time.</p></div>
+      <div class="card"><div class="ico">🧘</div><h3>Less meeting fatigue</h3><p>Each meeting has one purpose. Planning stays separate from review. No more one session doing five jobs.</p></div>
+      <div class="card"><div class="ico">💪</div><h3>Team owns the work</h3><p>The team commits to what they can actually deliver. Realistic sprints = realistic expectations.</p></div>
+      <div class="card"><div class="ico">⚡</div><h3>More breathing room</h3><p>2-week sprints mean time to actually finish things — not just start them and rush to the next meeting.</p></div>
     </div>
   </div>
 
-  <!-- SLIDE 14: Section break — DSS -->
-  <div class="slide section-break" id="s14">
-    <h2>DSS on<br><span style="font-style:italic">Scrum</span> 🚀</h2>
-    <p>The proposal — same tools, better rhythm</p>
+  <!-- S14: SECTION BREAK — DSS -->
+  <div class="slide sbreak">
+    <h2>DSS on<br><em>Scrum</em> 🚀</h2>
+    <p>Same team. Same tools. Better rhythm.</p>
   </div>
 
-  <!-- SLIDE 15: Before / After -->
-  <div class="slide ba-slide" id="s15">
-    <div class="section-tag">Section 4 — The proposal</div>
+  <!-- S15: BEFORE / AFTER -->
+  <div class="slide ba-slide">
+    <div class="tag">Section 4 — The proposal</div>
     <h2>What <span>changes</span> — and what stays the same</h2>
     <div class="ba-grid">
-      <div class="ba-col before">
+      <div class="ba-col bef">
         <h3>Before — current state</h3>
-        <div class="ba-row"><span class="icon">❌</span><span>1-week sprint — not enough time to execute</span></div>
-        <div class="ba-row"><span class="icon">❌</span><span>One Wednesday meeting doing everything at once</span></div>
-        <div class="ba-row"><span class="icon">❌</span><span>No check-ins between meetings — blockers hide for days</span></div>
-        <div class="ba-row"><span class="icon">❌</span><span>No retrospective — same friction repeats every week</span></div>
-        <div class="ba-row"><span class="icon">✅</span><span>AI transcripts, Trello, automation already in place</span></div>
+        <div class="ba-row"><span>❌</span><span>1-week sprint — not enough time to execute</span></div>
+        <div class="ba-row"><span>❌</span><span>One Wednesday meeting doing everything at once</span></div>
+        <div class="ba-row"><span>❌</span><span>No check-ins — blockers hide for days</span></div>
+        <div class="ba-row"><span>❌</span><span>No retrospective — same friction repeats</span></div>
+        <div class="ba-row"><span>✅</span><span>AI transcripts, Trello & automation already running</span></div>
       </div>
-      <div class="ba-col after">
-        <h3>After — proposed Scrum rhythm</h3>
-        <div class="ba-row"><span class="icon">✅</span><span>2-week sprint — real time to plan, execute and deliver</span></div>
-        <div class="ba-row"><span class="icon">✅</span><span>Wed wk 1: planning only. Wed wk 2: review + retro</span></div>
-        <div class="ba-row"><span class="icon">✅</span><span>Daily async standup — 15 min, catch blockers early</span></div>
-        <div class="ba-row"><span class="icon">✅</span><span>Built-in retrospective every 2 weeks — process improves</span></div>
-        <div class="ba-row"><span class="icon">✅</span><span>Same AI transcripts, Trello and automation — unchanged</span></div>
+      <div class="ba-col aft">
+        <h3>After — Scrum rhythm</h3>
+        <div class="ba-row"><span>✅</span><span>2-week sprint — real time to plan, execute & deliver</span></div>
+        <div class="ba-row"><span>✅</span><span>Wed wk 1: planning only. Wed wk 2: review + retro</span></div>
+        <div class="ba-row"><span>✅</span><span>Daily async standup — 15 min, catch blockers early</span></div>
+        <div class="ba-row"><span>✅</span><span>Retrospective every 2 weeks — process improves</span></div>
+        <div class="ba-row"><span>✅</span><span>Same AI notes, Trello & automation — unchanged</span></div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 16: Implementation steps -->
-  <div class="slide proposal-slide" id="s16">
-    <div class="proposal-left">
-      <div class="section-tag">Section 4 — The proposal</div>
+  <!-- S16: HOW WE START -->
+  <div class="slide prop-slide">
+    <div class="pl">
+      <div class="tag">Section 4 — The proposal</div>
       <h2>How we <span>start</span></h2>
       <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <h4>This Wednesday — sprint planning session (60 min)</h4>
-          <p>Use the AI meeting notes as our backlog. Define what we're committing to for the next 2 weeks. Assign Trello cards.</p>
-        </div>
+        <div class="snum">1</div>
+        <div class="sbody"><h4>This Wednesday — sprint planning (60 min)</h4><p>Use AI meeting notes as our backlog. Define what we commit to for 2 weeks. Assign Trello cards.</p></div>
       </div>
       <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <h4>Daily — async standup (15 min)</h4>
-          <p>Each team member posts 3 lines: done, doing, blocked. Slack thread or voice note — whatever works best.</p>
-        </div>
+        <div class="snum">2</div>
+        <div class="sbody"><h4>Daily — async standup (15 min)</h4><p>Each person posts 3 lines: done / doing / blocked. Slack thread or voice note — whatever works best.</p></div>
       </div>
       <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <h4>Wednesday in 2 weeks — review + retro (60 min)</h4>
-          <p>30 min: what did we ship? 30 min: what do we improve next sprint? Then straight into sprint 2 planning.</p>
-        </div>
+        <div class="snum">3</div>
+        <div class="sbody"><h4>Wednesday wk 2 — review + retro (60 min)</h4><p>30 min: what did we ship? 30 min: what do we improve? Then straight into sprint 2 planning.</p></div>
       </div>
       <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <h4>After 2 sprints — decide together</h4>
-          <p>Run two full sprints then evaluate in a proper retrospective. No long-term commitment — just an experiment.</p>
-        </div>
+        <div class="snum">4</div>
+        <div class="sbody"><h4>After 2 sprints — decide together</h4><p>Run two full sprints then evaluate in a proper retro. No long commitment — just a 4-week experiment.</p></div>
       </div>
     </div>
-    <div class="proposal-right">
-      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:8px">Tools that stay exactly the same</div>
-      <div class="tool-pill">
-        <div class="tname">AI Meeting Notes</div>
-        <div class="trole">Backlog grooming → sprint planning</div>
-      </div>
-      <div class="tool-pill">
-        <div class="tname">Trello Boards</div>
-        <div class="trole">Sprint backlog + progress tracking</div>
-      </div>
-      <div class="tool-pill">
-        <div class="tname">Trello API</div>
-        <div class="trole">Auto-import cards from notes</div>
-      </div>
-      <div class="tool-pill">
-        <div class="tname">Wednesday Meetings</div>
-        <div class="trole">Planning (wk 1) + Review/Retro (wk 2)</div>
-      </div>
+    <div class="pr">
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:4px">Tools staying exactly the same</div>
+      <div class="tool-pill"><div class="tn">AI Meeting Notes</div><div class="tr">Backlog grooming → sprint planning</div></div>
+      <div class="tool-pill"><div class="tn">Trello Boards</div><div class="tr">Sprint backlog + progress tracking</div></div>
+      <div class="tool-pill"><div class="tn">Trello API</div><div class="tr">Auto-import cards from notes</div></div>
+      <div class="tool-pill"><div class="tn">Wednesday Meetings</div><div class="tr">Planning (wk 1) + Review/Retro (wk 2)</div></div>
     </div>
   </div>
 
-  <!-- SLIDE 17: Closing -->
-  <div class="slide closing" id="s17">
-    <div class="cover-stripe"></div>
-    <div class="cover-stripe-r"></div>
-    <div class="logo-wrap">
-      <div style="display:flex;align-items:center;gap:0">
-        <div style="background:#CC0000;padding:10px 14px;border-radius:4px 0 0 4px">
-          <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">DSS</span>
-        </div>
-        <div style="background:#1a1a1a;border:1px solid #333;padding:10px 14px;border-radius:0 4px 4px 0">
-          <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px">DISTRO</span>
-        </div>
-      </div>
-    </div>
+  <!-- S17: CLOSING -->
+  <div class="slide cover">
+    <img class="logo" src="LOGO FOR SITE white.png" alt="DSS Distro">
     <h1>Same team.<br>Same tools.<br><span>Better rhythm.</span></h1>
-    <p>Let's run two sprints and see what changes. 🚀</p>
+    <p>Let's run two sprints and see what changes.</p>
+    <div class="badge">🚀 Ready to start this Wednesday?</div>
   </div>
 
 </div>
 
-<!-- Nav -->
+<!-- NAV -->
 <div class="nav">
   <button onclick="go(-1)">← Prev</button>
-  <span class="slide-counter" id="counter">1 / 17</span>
+  <span class="counter" id="ctr">1 / 17</span>
   <button onclick="go(1)">Next →</button>
 </div>
 
 <script>
-const slides = document.querySelectorAll('.slide');
-const total = slides.length;
-let cur = 0;
-
-function show(n) {
+const slides=document.querySelectorAll('.slide'),total=slides.length;
+let cur=0;
+function show(n){
   slides[cur].classList.remove('active');
-  cur = (n + total) % total;
+  cur=(n+total)%total;
   slides[cur].classList.add('active');
-  document.getElementById('counter').textContent = (cur+1) + ' / ' + total;
-  document.getElementById('progress').style.width = ((cur+1)/total*100) + '%';
+  document.getElementById('ctr').textContent=(cur+1)+' / '+total;
+  document.getElementById('prog').style.width=((cur+1)/total*100)+'%';
 }
-
-function go(d) { show(cur + d); }
-
-document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
-  if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+function go(d){show(cur+d);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);
 });
-
+// swipe support
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>40)go(dx<0?1:-1);
+},{passive:true});
 show(0);
 </script>
 </body>
